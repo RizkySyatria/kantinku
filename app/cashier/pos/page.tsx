@@ -8,7 +8,10 @@ import { createClient } from "@/lib/supabase/client";
 
 import { saveOfflineTransaction } from "@/lib/offline/db";
 
-import { syncOfflineTransactions } from "@/lib/offline/db";
+import {
+  syncOfflineTransactions,
+  getPendingTransactionCount,
+} from "@/lib/offline/db";
 
 import {
   cacheProducts,
@@ -42,6 +45,7 @@ export default function CashierPOSPage() {
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const [isOnline, setIsOnline] = useState(true);
+  const [pendingCount, setPendingCount] = useState(0);
 
   const [showPayment, setShowPayment] = useState(false);
 
@@ -125,39 +129,59 @@ export default function CashierPOSPage() {
     loadProducts();
   }, []);
 
+  
   useEffect(() => {
-    async function syncPendingTransactions() {
-      if (!navigator.onLine) {
-        return;
-      }
+    let isMounted = true;
 
+    async function syncPendingTransactions() {
       try {
+        // Jika offline, cukup perbarui jumlah pending.
+        if (!navigator.onLine) {
+          if (isMounted) {
+            await refreshPendingCount();
+          }
+          return;
+        }
+
+        // Jalankan sinkronisasi transaksi offline.
         const result = await syncOfflineTransactions();
 
         console.log("Offline sync result:", result);
 
+        // Perbarui stok produk jika transaksi berhasil disinkronkan.
         if (result.synced > 0) {
           await loadProducts();
+        }
+
+        // Hitung ulang pending setelah proses sync selesai.
+        if (isMounted) {
+          await refreshPendingCount();
         }
       } catch (error) {
         console.error(
           "Gagal menjalankan sinkronisasi offline:",
           error
         );
+
+        // Jika sync gagal, tetap tampilkan jumlah pending terbaru.
+        if (isMounted) {
+          await refreshPendingCount();
+        }
       }
     }
 
-    // Coba sync ketika halaman pertama kali dibuka
-    syncPendingTransactions();
+    // Periksa status pending saat halaman pertama kali dibuka.
+    void syncPendingTransactions();
 
-    // Coba sync ketika koneksi internet kembali
+    // Coba sinkronisasi kembali ketika internet tersedia.
     function handleOnline() {
-      syncPendingTransactions();
+      void syncPendingTransactions();
     }
 
     window.addEventListener("online", handleOnline);
 
     return () => {
+      isMounted = false;
       window.removeEventListener("online", handleOnline);
     };
   }, []);
@@ -453,6 +477,9 @@ export default function CashierPOSPage() {
           offlineItems
         );
 
+        // Perbarui indikator jumlah transaksi pending
+        await refreshPendingCount();
+
         setTransactionSuccess({
           transactionId: 0,
           transactionCode,
@@ -553,6 +580,48 @@ export default function CashierPOSPage() {
       timeStyle: "short",
     }).format(new Date(value));
   }
+
+  async function refreshPendingCount() {
+    try {
+      const count = await getPendingTransactionCount();
+      setPendingCount(count);
+    } catch (error) {
+      console.error(
+        "Gagal memuat jumlah transaksi pending:",
+        error
+      );
+    }
+  }
+
+  useEffect(() => {
+    refreshPendingCount();
+
+    function handlePendingUpdate() {
+      refreshPendingCount();
+    }
+
+    window.addEventListener(
+      "online",
+      handlePendingUpdate
+    );
+
+    window.addEventListener(
+      "offline",
+      handlePendingUpdate
+    );
+
+    return () => {
+      window.removeEventListener(
+        "online",
+        handlePendingUpdate
+      );
+
+      window.removeEventListener(
+        "offline",
+        handlePendingUpdate
+      );
+    };
+  }, []);
 
   if (transactionSuccess) {
     return (
@@ -723,6 +792,34 @@ export default function CashierPOSPage() {
             <p className="text-sm text-slate-500">
               Point of Sale
             </p>
+
+            <div className="mt-2">
+              {isOnline ? (
+                <span className="inline-flex items-center gap-2 rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-700">
+                  <span className="h-2 w-2 rounded-full bg-green-500" />
+                  Online
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-2 rounded-full bg-amber-100 px-3 py-1 text-xs font-medium text-amber-700">
+                  <span className="h-2 w-2 rounded-full bg-amber-500" />
+                  Offline
+                </span>
+              )}
+            </div>
+          </div>
+
+          <div className="mt-2">
+            {pendingCount > 0 ? (
+              <span className="inline-flex items-center gap-2 rounded-full bg-amber-100 px-3 py-1 text-xs font-medium text-amber-700">
+                <span className="h-2 w-2 rounded-full bg-amber-500" />
+                {pendingCount} transaksi menunggu sinkronisasi
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-2 rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-700">
+                <span className="h-2 w-2 rounded-full bg-green-500" />
+                Semua transaksi sudah tersinkron
+              </span>
+            )}
           </div>
 
           <button

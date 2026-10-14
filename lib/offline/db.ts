@@ -62,6 +62,10 @@ class OfflineDatabase extends Dexie {
 
 export const offlineDb = new OfflineDatabase();
 
+/* =========================================================
+   CACHE PRODUK
+   ========================================================= */
+
 export async function cacheProducts(
   products: Omit<OfflineProduct, "cached_at">[]
 ) {
@@ -71,7 +75,6 @@ export async function cacheProducts(
   }));
 
   await offlineDb.products.clear();
-
   await offlineDb.products.bulkPut(productsWithCacheTime);
 }
 
@@ -83,17 +86,36 @@ export async function getCachedProducts() {
     .sort((a, b) => a.name.localeCompare(b.name));
 }
 
+/* =========================================================
+   HITUNG TRANSAKSI YANG BELUM TERSINKRON
+   ========================================================= */
+
+export async function getPendingTransactionCount() {
+  return offlineDb.transactions
+    .where("status")
+    .anyOf(["pending", "failed"])
+    .count();
+}
+
+/* =========================================================
+   SIMPAN TRANSAKSI OFFLINE
+   ========================================================= */
+
 export async function saveOfflineTransaction(
   transaction: OfflineTransaction,
   items: OfflineTransactionItem[]
 ) {
+  if (items.length === 0) {
+    throw new Error("Detail transaksi offline masih kosong.");
+  }
+
   await offlineDb.transaction(
     "rw",
     offlineDb.transactions,
     offlineDb.transactionItems,
     offlineDb.products,
     async () => {
-      // Pastikan stok lokal cukup untuk semua item
+      // Validasi stok seluruh item sebelum menyimpan transaksi.
       for (const item of items) {
         const product = await offlineDb.products.get(
           item.product_id
@@ -105,6 +127,12 @@ export async function saveOfflineTransaction(
           );
         }
 
+        if (item.quantity <= 0) {
+          throw new Error(
+            `Jumlah produk ${item.product_name} tidak valid.`
+          );
+        }
+
         if (product.stock < item.quantity) {
           throw new Error(
             `Stok ${product.name} tidak mencukupi. Stok tersedia ${product.stock} ${product.unit}.`
@@ -112,13 +140,13 @@ export async function saveOfflineTransaction(
         }
       }
 
-      // Simpan transaksi offline
+      // Simpan transaksi utama.
       await offlineDb.transactions.add(transaction);
 
-      // Simpan detail transaksi
+      // Simpan seluruh detail transaksi.
       await offlineDb.transactionItems.bulkAdd(items);
 
-      // Kurangi stok lokal
+      // Kurangi stok lokal setelah semua item tervalidasi.
       for (const item of items) {
         const product = await offlineDb.products.get(
           item.product_id
@@ -139,16 +167,16 @@ export async function saveOfflineTransaction(
   );
 }
 
-
 /* =========================================================
    SINKRONISASI TRANSAKSI OFFLINE
    ========================================================= */
 
+// Mencegah dua proses sync berjalan bersamaan
+// dalam instance aplikasi yang sama.
 let syncInProgress = false;
 
 export async function syncOfflineTransactions() {
-  // Jangan melakukan sync jika perangkat masih offline
-  if (!navigator.onLine) {
+  if (typeof navigator === "undefined" || !navigator.onLine) {
     return {
       synced: 0,
       failed: 0,
@@ -156,7 +184,6 @@ export async function syncOfflineTransactions() {
     };
   }
 
-  // Jangan izinkan dua proses sync berjalan bersamaan
   if (syncInProgress) {
     console.log(
       "Offline sync sedang berjalan. Proses kedua dilewati."
@@ -174,7 +201,6 @@ export async function syncOfflineTransactions() {
   try {
     const supabase = createClient();
 
-    // Ambil transaksi yang belum berhasil disinkronkan
     const transactions = await offlineDb.transactions
       .where("status")
       .anyOf(["pending", "failed"])
@@ -193,7 +219,12 @@ export async function syncOfflineTransactions() {
 
     for (const transaction of transactions) {
       try {
-        // Ambil detail item transaksi
+        if (transaction.id === undefined) {
+          throw new Error(
+            "ID transaksi lokal tidak ditemukan."
+          );
+        }
+
         const items = await offlineDb.transactionItems
           .where("transaction_local_id")
           .equals(transaction.local_id)
@@ -205,25 +236,19 @@ export async function syncOfflineTransactions() {
           );
         }
 
-        // Format item untuk RPC
         const rpcItems = items.map((item) => ({
           product_id: item.product_id,
           quantity: item.quantity,
         }));
 
-        // Kirim transaksi ke Supabase
         const { data, error } = await supabase.rpc(
           "sync_offline_transaction",
           {
-            p_transaction_code:
-              transaction.transaction_code,
+            p_transaction_code: transaction.transaction_code,
             p_created_at: transaction.created_at,
-            p_payment_method:
-              transaction.payment_method,
-            p_payment_amount:
-              transaction.payment_amount,
-            p_change_amount:
-              transaction.change_amount,
+            p_payment_method: transaction.payment_method,
+            p_payment_amount: transaction.payment_amount,
+            p_change_amount: transaction.change_amount,
             p_items: rpcItems,
           }
         );
@@ -240,10 +265,8 @@ export async function syncOfflineTransactions() {
           );
         }
 
-        // Berhasil:
-        // pending/failed → synced
         await offlineDb.transactions.update(
-          transaction.id!,
+          transaction.id,
           {
             status: "synced",
             sync_error: undefined,
@@ -263,16 +286,18 @@ export async function syncOfflineTransactions() {
           error
         );
 
-        await offlineDb.transactions.update(
-          transaction.id!,
-          {
-            status: "failed",
-            sync_error:
-              error instanceof Error
-                ? error.message
-                : "Gagal melakukan sinkronisasi.",
-          }
-        );
+        if (transaction.id !== undefined) {
+          await offlineDb.transactions.update(
+            transaction.id,
+            {
+              status: "failed",
+              sync_error:
+                error instanceof Error
+                  ? error.message
+                  : "Gagal melakukan sinkronisasi.",
+            }
+          );
+        }
 
         failedCount++;
       }
@@ -284,7 +309,8 @@ export async function syncOfflineTransactions() {
       skipped: false,
     };
   } finally {
-    // Pastikan lock dilepas walaupun terjadi error
     syncInProgress = false;
   }
 }
+
+

@@ -1,0 +1,82 @@
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0f172a" />
+  <title>Kantinku - Offline</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      background: #f1f5f9;
+      color: #0f172a;
+      font-family: Arial, sans-serif;
+      text-align: center;
+    }
+
+    main {
+      width: 100%;
+      max-width: 420px;
+      padding: 32px 24px;
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 4px 16px rgb(15 23 42 / 8%);
+    }
+
+    img {
+      width: 96px;
+      height: 96px;
+      object-fit: contain;
+      margin-bottom: 12px;
+    }
+
+    h1 {
+      margin: 8px 0;
+      font-size: 24px;
+    }
+
+    p {
+      color: #64748b;
+      line-height: 1.6;
+    }
+
+    button {
+      margin-top: 16px;
+      padding: 12px 20px;
+      border: 0;
+      border-radius: 10px;
+      background: #0f172a;
+      color: white;
+      font-size: 15px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <img src="/icons/icon-192.png" alt="Logo KantinKu" />
+    <h1>Kamu sedang offline</h1>
+    <p>
+      Koneksi internet tidak tersedia atau halaman ini
+      belum tersimpan di perangkat.
+    </p>
+    <p>
+      Jika halaman POS sudah terbuka sebelumnya,
+      kamu masih dapat menggunakan fitur transaksi offline
+      yang tersedia.
+    </p>
+    <button onclick="window.location.reload()">
+      Coba Lagi
+    </button>
+  </main>
+</body>
+</html>
