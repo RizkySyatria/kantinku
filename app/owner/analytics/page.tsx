@@ -355,10 +355,11 @@ export default function AnalyticsPage() {
 
   if (loading) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-slate-100">
-        <p className="text-slate-500">
-          Memuat analytics...
-        </p>
+      <main className="flex min-h-screen items-center justify-center bg-slate-100 px-4">
+        <div className="flex flex-col items-center gap-3 text-center" role="status" aria-live="polite">
+          <span className="h-8 w-8 animate-spin rounded-full border-4 border-slate-300 border-t-slate-900" aria-hidden="true" />
+          <p className="text-sm font-medium text-slate-600">Memuat analytics penjualan...</p>
+        </div>
       </main>
     );
   }
@@ -366,7 +367,7 @@ export default function AnalyticsPage() {
   return (
     <main className="min-h-screen bg-slate-100">
       <header className="border-b bg-white">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-4">
           <div>
             <h1 className="text-xl font-bold text-slate-900">
               KantinKu
@@ -379,16 +380,16 @@ export default function AnalyticsPage() {
 
           <button
             onClick={() => router.push("/owner")}
-            className="cursor-pointer rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+            className="min-h-10 shrink-0 cursor-pointer rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition duration-150 hover:bg-slate-50 active:scale-[0.98] active:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500 focus-visible:ring-offset-2"
           >
             Kembali
           </button>
         </div>
       </header>
 
-      <div className="mx-auto max-w-7xl px-4 py-6">
+      <div className="mx-auto max-w-7xl px-4 py-5 sm:px-6 sm:py-6 lg:px-8">
         <section className="mb-6">
-          <h2 className="text-2xl font-bold text-slate-900">
+          <h2 className="text-xl font-bold text-slate-900 sm:text-2xl">
             Analytics
           </h2>
 
@@ -399,7 +400,7 @@ export default function AnalyticsPage() {
 
         {/* FILTER PERIODE */}
 
-        <section className="rounded-2xl bg-white p-6 shadow-sm">
+        <section className="rounded-2xl bg-white p-4 shadow-sm sm:p-6">
           <h3 className="text-lg font-semibold text-slate-900">
             Filter Periode
           </h3>
@@ -420,7 +421,7 @@ export default function AnalyticsPage() {
                 onChange={(event) =>
                   setStartDate(event.target.value)
                 }
-                className="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-slate-500"
+                className="min-h-11 w-full rounded-xl border border-slate-300 px-4 py-3 text-base outline-none transition focus:border-slate-500 focus:ring-2 focus:ring-slate-200"
               />
             </div>
 
@@ -435,22 +436,22 @@ export default function AnalyticsPage() {
                 onChange={(event) =>
                   setEndDate(event.target.value)
                 }
-                className="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-slate-500"
+                className="min-h-11 w-full rounded-xl border border-slate-300 px-4 py-3 text-base outline-none transition focus:border-slate-500 focus:ring-2 focus:ring-slate-200"
               />
             </div>
           </div>
 
-          <div className="mt-4 flex gap-3">
+          <div className="mt-4 flex flex-col gap-3 sm:flex-row">
             <button
               onClick={handleFilter}
-              className="cursor-pointer rounded-xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white hover:bg-slate-800"
+              className="min-h-11 w-full cursor-pointer rounded-xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition duration-150 hover:bg-slate-800 active:scale-[0.99] active:bg-slate-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500 focus-visible:ring-offset-2 sm:w-auto"
             >
               Tampilkan
             </button>
 
             <button
               onClick={handleReset}
-              className="cursor-pointer rounded-xl border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+              className="min-h-11 w-full cursor-pointer rounded-xl border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-700 transition duration-150 hover:bg-slate-50 active:scale-[0.99] active:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500 focus-visible:ring-offset-2 sm:w-auto"
             >
               Reset
             </button>
@@ -459,13 +460,13 @@ export default function AnalyticsPage() {
 
         {/* RINGKASAN */}
 
-        <section className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-3">
+        <section className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <div className="rounded-2xl bg-white p-5 shadow-sm">
             <p className="text-sm text-slate-500">
               Total Penjualan
             </p>
 
-            <p className="mt-2 text-2xl font-bold text-slate-900">
+            <p className="mt-2 break-words text-xl font-bold text-slate-900 sm:text-2xl">
               {formatRupiah(totalSales)}
             </p>
           </div>
@@ -475,7 +476,7 @@ export default function AnalyticsPage() {
               Total Transaksi
             </p>
 
-            <p className="mt-2 text-2xl font-bold text-slate-900">
+            <p className="mt-2 break-words text-xl font-bold text-slate-900 sm:text-2xl">
               {transactionCount}
             </p>
           </div>
@@ -485,7 +486,7 @@ export default function AnalyticsPage() {
               Rata-rata Transaksi
             </p>
 
-            <p className="mt-2 text-2xl font-bold text-slate-900">
+            <p className="mt-2 break-words text-xl font-bold text-slate-900 sm:text-2xl">
               {formatRupiah(averageTransaction)}
             </p>
           </div>
@@ -493,7 +494,7 @@ export default function AnalyticsPage() {
 
         {/* TREN PENJUALAN */}
 
-        <section className="mt-6 rounded-2xl bg-white p-6 shadow-sm">
+        <section className="mt-6 rounded-2xl bg-white p-4 shadow-sm sm:p-6">
           <h3 className="text-lg font-semibold text-slate-900">
             Tren Penjualan
           </h3>
@@ -507,7 +508,7 @@ export default function AnalyticsPage() {
               Tidak ada transaksi pada periode ini.
             </div>
           ) : (
-            <div className="mt-6 h-80 w-full">
+            <div className="mt-6 h-72 w-full sm:h-80">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart
                   data={dailySales}
@@ -550,10 +551,10 @@ export default function AnalyticsPage() {
           )}
         </section>
 
-        <section className="mt-6 grid gap-6 lg:grid-cols-2">
+        <section className="mt-6 grid min-w-0 gap-6 lg:grid-cols-2">
           {/* PRODUK TERLARIS */}
 
-          <div className="rounded-2xl bg-white p-6 shadow-sm">
+          <div className="rounded-2xl bg-white p-4 shadow-sm sm:p-6">
             <h3 className="text-lg font-semibold text-slate-900">
               Produk Terlaris
             </h3>
@@ -579,7 +580,7 @@ export default function AnalyticsPage() {
                   return (
                     <div
                       key={product.name}
-                      className="rounded-xl bg-slate-50 px-4 py-4"
+                      className="rounded-xl bg-slate-50 px-3 py-4 sm:px-4"
                     >
                       <div className="flex items-center justify-between gap-4">
                         <div className="flex min-w-0 items-center gap-3">
@@ -622,7 +623,7 @@ export default function AnalyticsPage() {
 
           {/* PENJUALAN BERDASARKAN METODE PEMBAYARAN */}
 
-          <div className="rounded-2xl bg-white p-6 shadow-sm">
+          <div className="rounded-2xl bg-white p-4 shadow-sm sm:p-6">
             <h3 className="text-lg font-semibold text-slate-900">
               Penjualan Berdasarkan Metode Pembayaran
             </h3>
@@ -658,7 +659,7 @@ export default function AnalyticsPage() {
                   return (
                     <div
                       key={payment.method}
-                      className="rounded-xl bg-slate-50 px-4 py-4"
+                      className="rounded-xl bg-slate-50 px-3 py-4 sm:px-4"
                     >
                       <div className="flex items-center justify-between gap-4">
                         <div>

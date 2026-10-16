@@ -417,7 +417,7 @@ export default function OwnerReportsPage() {
   return (
     <main className="min-h-screen bg-slate-100">
       <header className="border-b bg-white">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-4">
           <div>
             <h1 className="text-xl font-bold text-slate-900">
               KantinKu
@@ -430,14 +430,14 @@ export default function OwnerReportsPage() {
 
           <button
             onClick={() => window.history.back()}
-            className="cursor-pointer rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+            className="min-h-10 shrink-0 cursor-pointer rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition duration-150 hover:bg-slate-50 active:scale-[0.98] active:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500 focus-visible:ring-offset-2"
           >
             Kembali
           </button>
         </div>
       </header>
 
-      <div className="mx-auto max-w-7xl px-4 py-6">
+      <div className="mx-auto max-w-7xl px-4 py-5 sm:px-6 sm:py-6 lg:px-8">
         <section className="mb-6">
           <h2 className="text-2xl font-bold text-slate-900">
             Laporan Penjualan
@@ -449,12 +449,12 @@ export default function OwnerReportsPage() {
         </section>
 
         {/* FILTER PERIODE */}
-        <section className="rounded-2xl bg-white p-6 shadow-sm">
+        <section className="rounded-2xl bg-white p-4 shadow-sm sm:p-6">
           <h3 className="text-lg font-semibold text-slate-900">
             Periode Laporan
           </h3>
 
-          <div className="mt-5 grid gap-4 md:grid-cols-2">
+          <div className="mt-5 grid gap-4 sm:grid-cols-2">
             <div>
               <label
                 htmlFor="startDate"
@@ -470,7 +470,7 @@ export default function OwnerReportsPage() {
                 onChange={(event) =>
                   setStartDate(event.target.value)
                 }
-                className="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-slate-900"
+                className="min-h-11 w-full rounded-xl border border-slate-300 px-4 py-3 text-base outline-none transition focus:border-slate-900 focus:ring-2 focus:ring-slate-200"
               />
             </div>
 
@@ -489,16 +489,17 @@ export default function OwnerReportsPage() {
                 onChange={(event) =>
                   setEndDate(event.target.value)
                 }
-                className="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-slate-900"
+                className="min-h-11 w-full rounded-xl border border-slate-300 px-4 py-3 text-base outline-none transition focus:border-slate-900 focus:ring-2 focus:ring-slate-200"
               />
             </div>
           </div>
 
+          <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
           <button
             type="button"
             onClick={loadTransactions}
             disabled={loading}
-            className="cursor-pointer rounded-xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50"
+            className="min-h-11 w-full cursor-pointer rounded-xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition duration-150 hover:bg-slate-800 active:scale-[0.99] active:bg-slate-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
           >
             {loading ? "Memuat..." : "Tampilkan Laporan"}
           </button>
@@ -507,7 +508,7 @@ export default function OwnerReportsPage() {
             type="button"
             onClick={handleExportExcel}
             disabled={loading || transactions.length === 0}
-            className="cursor-pointer rounded-xl border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+            className="min-h-11 w-full cursor-pointer rounded-xl border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition duration-150 hover:bg-slate-50 active:scale-[0.99] active:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
             >
             Export Excel
           </button>
@@ -516,54 +517,55 @@ export default function OwnerReportsPage() {
             type="button"
             onClick={handleExportPDF}
             disabled={loading || transactions.length === 0}
-            className="cursor-pointer rounded-xl border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+            className="min-h-11 w-full cursor-pointer rounded-xl border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition duration-150 hover:bg-slate-50 active:scale-[0.99] active:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
           >
             Export PDF
           </button>
+          </div>
         </section>
 
         {/* ERROR */}
         {error && (
-          <div className="mt-6 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+          <div role="alert" className="mt-6 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
             {error}
           </div>
         )}
 
         {/* RINGKASAN */}
-        <section className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-3">
-          <div className="rounded-2xl bg-white p-5 shadow-sm">
+        <section className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="rounded-2xl bg-white p-4 shadow-sm sm:p-5">
             <p className="text-sm text-slate-500">
               Total Penjualan
             </p>
 
-            <p className="mt-2 text-2xl font-bold text-slate-900">
+            <p className="mt-2 break-words text-xl font-bold text-slate-900 sm:text-2xl">
               {formatRupiah(totalSales)}
             </p>
           </div>
 
-          <div className="rounded-2xl bg-white p-5 shadow-sm">
+          <div className="rounded-2xl bg-white p-4 shadow-sm sm:p-5">
             <p className="text-sm text-slate-500">
               Total Transaksi
             </p>
 
-            <p className="mt-2 text-2xl font-bold text-slate-900">
+            <p className="mt-2 break-words text-xl font-bold text-slate-900 sm:text-2xl">
               {transactionCount}
             </p>
           </div>
 
-          <div className="rounded-2xl bg-white p-5 shadow-sm">
+          <div className="rounded-2xl bg-white p-4 shadow-sm sm:p-5">
             <p className="text-sm text-slate-500">
               Rata-rata Transaksi
             </p>
 
-            <p className="mt-2 text-2xl font-bold text-slate-900">
+            <p className="mt-2 break-words text-xl font-bold text-slate-900 sm:text-2xl">
               {formatRupiah(averageTransaction)}
             </p>
           </div>
         </section>
 
         {/* DETAIL TRANSAKSI */}
-        <section className="mt-6 rounded-2xl bg-white p-6 shadow-sm">
+        <section className="mt-6 rounded-2xl bg-white p-4 shadow-sm sm:p-6">
           <div className="mb-5">
             <h3 className="text-lg font-semibold text-slate-900">
               Detail Transaksi
@@ -575,15 +577,16 @@ export default function OwnerReportsPage() {
           </div>
 
           {loading ? (
-            <div className="rounded-xl bg-slate-50 p-6 text-center text-sm text-slate-500">
+            <div role="status" aria-live="polite" className="flex flex-col items-center justify-center gap-3 rounded-xl bg-slate-50 p-6 text-center text-sm text-slate-500">
+              <span className="h-7 w-7 animate-spin rounded-full border-4 border-slate-300 border-t-slate-900" aria-hidden="true" />
               Memuat data transaksi...
             </div>
           ) : transactions.length === 0 ? (
-            <div className="rounded-xl bg-slate-50 p-6 text-center text-sm text-slate-500">
+            <div className="rounded-xl bg-slate-50 p-6 text-center text-sm text-slate-500" role="status">
               Tidak ada transaksi pada periode ini.
             </div>
           ) : (
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto rounded-xl border border-slate-100">
               <table className="w-full min-w-[700px] text-sm">
                 <thead>
                   <tr className="border-b border-slate-200 text-left">

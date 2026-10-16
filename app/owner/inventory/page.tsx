@@ -285,10 +285,13 @@ export default function OwnerInventoryPage() {
 
   if (loading) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-slate-100">
-        <p className="text-slate-500">
-          Memuat inventory...
-        </p>
+      <main className="flex min-h-screen items-center justify-center bg-slate-100 px-4">
+        <div className="flex flex-col items-center gap-3 rounded-2xl bg-white px-8 py-7 shadow-sm">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-slate-200 border-t-slate-800" />
+          <p className="text-sm font-medium text-slate-600" role="status">
+            Memuat data persediaan...
+          </p>
+        </div>
       </main>
     );
   }
@@ -313,8 +316,8 @@ export default function OwnerInventoryPage() {
 
   return (
     <main className="min-h-screen bg-slate-100">
-      <header className="border-b bg-white">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4">
+      <header className="sticky top-0 z-20 border-b border-slate-200 bg-white/95 backdrop-blur">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3 sm:px-6 sm:py-4 lg:px-8">
           <div>
             <h1 className="text-xl font-bold text-slate-900">
               KantinKu
@@ -328,16 +331,16 @@ export default function OwnerInventoryPage() {
           <button
             type="button"
             onClick={() => router.push("/owner")}
-            className="cursor-pointer rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+            className="min-h-10 cursor-pointer rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition duration-150 hover:border-slate-300 hover:bg-slate-50 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2"
           >
             Kembali
           </button>
         </div>
       </header>
 
-      <div className="mx-auto max-w-7xl px-4 py-6">
-        <section className="mb-6">
-          <h2 className="text-2xl font-bold text-slate-900">
+      <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
+        <section className="mb-7 sm:mb-8">
+          <h2 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
             Persediaan
           </h2>
 
@@ -347,31 +350,31 @@ export default function OwnerInventoryPage() {
         </section>
 
         {message && (
-          <div className="mb-4 flex items-start gap-3 rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
+          <div className="mb-4 flex items-start gap-3 rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm leading-5 text-green-800 shadow-sm" role="status" aria-live="polite">
             <span className="font-bold">✓</span>
             <span>{message}</span>
           </div>
         )}
 
         {error && (
-          <div className="mb-4 flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          <div className="mb-4 flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm leading-5 text-red-800 shadow-sm" role="alert" aria-live="assertive">
             <span className="font-bold">⚠</span>
             <span>{error}</span>
           </div>
         )}
 
-        <section className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-          <div className="rounded-2xl bg-white p-5 shadow-sm">
+        <section className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
+          <div className="min-w-0 rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm transition-shadow hover:shadow-md sm:p-5">
             <p className="text-sm text-slate-500">
               Total Produk
             </p>
 
-            <p className="mt-2 text-2xl font-bold text-slate-900">
+            <p className="mt-2 text-2xl font-bold tracking-tight text-slate-900">
               {totalProducts}
             </p>
           </div>
 
-          <div className="rounded-2xl bg-white p-5 shadow-sm">
+          <div className="min-w-0 rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm transition-shadow hover:shadow-md sm:p-5">
             <p className="text-sm text-slate-500">
               Stok Aman
             </p>
@@ -381,7 +384,7 @@ export default function OwnerInventoryPage() {
             </p>
           </div>
 
-          <div className="rounded-2xl bg-white p-5 shadow-sm">
+          <div className="min-w-0 rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm transition-shadow hover:shadow-md sm:p-5">
             <p className="text-sm text-slate-500">
               Stok Menipis
             </p>
@@ -391,7 +394,7 @@ export default function OwnerInventoryPage() {
             </p>
           </div>
 
-          <div className="rounded-2xl bg-white p-5 shadow-sm">
+          <div className="min-w-0 rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm transition-shadow hover:shadow-md sm:p-5">
             <p className="text-sm text-slate-500">
               Stok Habis
             </p>
@@ -418,7 +421,7 @@ export default function OwnerInventoryPage() {
               <button
                 type="button"
                 onClick={() => openAddStockForm()}
-                className="cursor-pointer rounded-xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white hover:bg-slate-800"
+                className="min-h-11 cursor-pointer rounded-xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white shadow-sm transition duration-150 hover:bg-slate-800 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500 focus-visible:ring-offset-2"
               >
                 + Tambah Stok
               </button>
@@ -426,14 +429,14 @@ export default function OwnerInventoryPage() {
               <button
                 type="button"
                 onClick={() => openAdjustmentForm()}
-                className="cursor-pointer rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+                className="min-h-11 cursor-pointer rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition duration-150 hover:border-slate-300 hover:bg-slate-50 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2"
               >
                 Koreksi Stok
               </button>
             </div>
           </div>
 
-          <div className="overflow-hidden rounded-2xl bg-white shadow-sm">
+          <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm">
             {products.length === 0 ? (
               <div className="p-8 text-center">
                 <p className="font-medium text-slate-700">
@@ -449,7 +452,7 @@ export default function OwnerInventoryPage() {
                   return (
                     <div
                       key={product.id}
-                      className="px-5 py-5"
+                      className="px-4 py-4 transition-colors hover:bg-slate-50/70 sm:px-5 sm:py-5"
                     >
                       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                         <div>
@@ -489,7 +492,7 @@ export default function OwnerInventoryPage() {
                                 product.id
                               )
                             }
-                            className="cursor-pointer rounded-lg border border-slate-300 px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50"
+                            className="min-h-10 cursor-pointer rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 transition duration-150 hover:border-slate-300 hover:bg-slate-50 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2"
                           >
                             Tambah
                           </button>
@@ -501,7 +504,7 @@ export default function OwnerInventoryPage() {
                                 product.id
                               )
                             }
-                            className="cursor-pointer rounded-lg border border-slate-300 px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50"
+                            className="min-h-10 cursor-pointer rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 transition duration-150 hover:border-slate-300 hover:bg-slate-50 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2"
                           >
                             Koreksi
                           </button>
@@ -517,7 +520,7 @@ export default function OwnerInventoryPage() {
 
         {showForm && (
           <section className="mt-6">
-            <div className="rounded-2xl bg-white p-6 shadow-sm">
+            <div className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm sm:p-6">
               <div className="mb-5">
                 <h3 className="text-lg font-bold text-slate-900">
                   {formType === "in"
@@ -548,7 +551,7 @@ export default function OwnerInventoryPage() {
                         setFormType("in");
                         setQuantity("");
                       }}
-                      className={`cursor-pointer rounded-xl border p-4 text-left ${
+                      className={`min-h-24 cursor-pointer rounded-xl border p-4 text-left transition duration-150 active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2 ${
                         formType === "in"
                           ? "border-slate-900 bg-slate-900 text-white"
                           : "border-slate-300 bg-white text-slate-700"
@@ -589,7 +592,7 @@ export default function OwnerInventoryPage() {
                             : ""
                         );
                       }}
-                      className={`cursor-pointer rounded-xl border p-4 text-left ${
+                      className={`min-h-24 cursor-pointer rounded-xl border p-4 text-left transition duration-150 active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2 ${
                         formType === "adjustment"
                           ? "border-slate-900 bg-slate-900 text-white"
                           : "border-slate-300 bg-white text-slate-700"
@@ -618,6 +621,7 @@ export default function OwnerInventoryPage() {
                   </label>
 
                   <select
+                    id="inventory-product"
                     value={selectedProductId}
                     onChange={(event) => {
                       const value =
@@ -640,7 +644,7 @@ export default function OwnerInventoryPage() {
                         );
                       }
                     }}
-                    className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none focus:border-slate-900"
+                    className="min-h-11 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-base text-slate-900 outline-none transition focus:border-slate-700 focus:ring-2 focus:ring-slate-200 sm:text-sm"
                   >
                     <option value="">
                       Pilih produk
@@ -667,6 +671,7 @@ export default function OwnerInventoryPage() {
                   </label>
 
                   <input
+                    id="inventory-quantity"
                     type="number"
                     min="0"
                     step="1"
@@ -681,7 +686,7 @@ export default function OwnerInventoryPage() {
                         ? "Contoh: 20"
                         : "Contoh: 15"
                     }
-                    className="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm text-slate-900 outline-none focus:border-slate-900"
+                    className="min-h-11 w-full rounded-xl border border-slate-300 px-4 py-3 text-base text-slate-900 outline-none transition focus:border-slate-700 focus:ring-2 focus:ring-slate-200 sm:text-sm"
                   />
 
                   {formType === "adjustment" && (
@@ -698,6 +703,7 @@ export default function OwnerInventoryPage() {
                   </label>
 
                   <textarea
+                    id="inventory-note"
                     value={note}
                     onChange={(event) =>
                       setNote(event.target.value)
@@ -708,7 +714,7 @@ export default function OwnerInventoryPage() {
                         ? "Contoh: Restock barang dari pemasok"
                         : "Contoh: Hasil pengecekan stok fisik"
                     }
-                    className="w-full resize-none rounded-xl border border-slate-300 px-4 py-3 text-sm text-slate-900 outline-none focus:border-slate-900"
+                    className="w-full resize-y rounded-xl border border-slate-300 px-4 py-3 text-base text-slate-900 outline-none transition focus:border-slate-700 focus:ring-2 focus:ring-slate-200 sm:text-sm"
                   />
                 </div>
 
@@ -717,7 +723,7 @@ export default function OwnerInventoryPage() {
                     type="button"
                     onClick={resetForm}
                     disabled={saving}
-                    className="cursor-pointer rounded-xl border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
+                    className="min-h-11 cursor-pointer rounded-xl border border-slate-200 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
                   >
                     Batal
                   </button>
@@ -725,11 +731,16 @@ export default function OwnerInventoryPage() {
                   <button
                     type="submit"
                     disabled={saving}
-                    className="cursor-pointer rounded-xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
+                    className="min-h-11 cursor-pointer rounded-xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
                   >
-                    {saving
-                      ? "Menyimpan..."
-                      : "Simpan Perubahan"}
+                    {saving ? (
+                      <span className="inline-flex items-center justify-center gap-2">
+                        <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
+                        Menyimpan...
+                      </span>
+                    ) : (
+                      "Simpan Perubahan"
+                    )}
                   </button>
                 </div>
               </form>
@@ -748,7 +759,7 @@ export default function OwnerInventoryPage() {
             </p>
           </div>
 
-          <div className="overflow-hidden rounded-2xl bg-white shadow-sm">
+          <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm">
             {inventory.length === 0 ? (
               <div className="p-8 text-center">
                 <p className="font-medium text-slate-700">
@@ -760,7 +771,7 @@ export default function OwnerInventoryPage() {
                 {inventory.map((item) => (
                   <div
                     key={item.id}
-                    className="px-5 py-4"
+                    className="px-4 py-4 transition-colors hover:bg-slate-50/70 sm:px-5"
                   >
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                       <div>

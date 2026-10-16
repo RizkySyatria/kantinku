@@ -671,9 +671,9 @@ export default function ProductsPage() {
         </div>
       </header>
 
-      <div className="mx-auto max-w-7xl px-4 py-6">
+      <div className="mx-auto max-w-7xl px-4 py-5 sm:px-6 sm:py-8 lg:px-8">
         {/* PAGE TITLE */}
-        <div className="mb-6">
+        <div className="mb-6 sm:mb-8">
           <h2 className="text-2xl font-bold text-slate-900">
             Produk & Menu
           </h2>
@@ -685,7 +685,7 @@ export default function ProductsPage() {
 
         {/* SUCCESS */}
         {message && (
-          <div className="mb-4 flex items-start gap-3 rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
+          <div role="status" aria-live="polite" className="mb-4 flex items-start gap-3 rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm font-medium text-green-800 shadow-sm">
             <span className="font-bold">✓</span>
 
             <span>{message}</span>
@@ -694,7 +694,7 @@ export default function ProductsPage() {
 
         {/* ERROR */}
         {error && (
-          <div className="mb-4 flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          <div role="alert" aria-live="assertive" className="mb-4 flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-800 shadow-sm">
             <span className="font-bold">⚠</span>
 
             <span>{error}</span>
@@ -704,7 +704,7 @@ export default function ProductsPage() {
         {/* CATEGORY + PRODUCT FORM */}
         <div className="grid gap-6 lg:grid-cols-2">
           {/* CATEGORY */}
-          <section className="rounded-2xl bg-white p-6 shadow-sm">
+          <section className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm sm:p-6">
             <h3 className="text-lg font-semibold text-slate-900">
               {editingCategory
                 ? "Edit Kategori"
@@ -726,13 +726,13 @@ export default function ProductsPage() {
                 onChange={(event) =>
                   setCategoryName(event.target.value)
                 }
-                className="flex-1 rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-slate-900"
+                className="flex-1 rounded-xl border border-slate-300 px-4 py-3 outline-none transition focus:border-slate-900 focus:ring-2 focus:ring-slate-200"
               />
 
               <button
                 type="submit"
                 disabled={savingCategory}
-                className="cursor-pointer rounded-xl bg-slate-900 px-5 py-3 font-semibold text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
+                className="cursor-pointer rounded-xl bg-slate-900 px-5 py-3 font-semibold text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60 active:scale-[0.98] transition duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2"
               >
                 {savingCategory
                   ? "Menyimpan..."
@@ -746,7 +746,7 @@ export default function ProductsPage() {
               <button
                 type="button"
                 onClick={cancelCategoryEdit}
-                className="mt-3 w-full cursor-pointer rounded-xl border border-slate-300 px-4 py-3 font-semibold text-slate-700 hover:bg-slate-50"
+                className="mt-3 w-full cursor-pointer rounded-xl border border-slate-300 px-4 py-3 font-semibold text-slate-700 hover:bg-slate-50 active:scale-[0.98] transition duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2"
               >
                 Batal Edit Kategori
               </button>
@@ -762,7 +762,7 @@ export default function ProductsPage() {
                 categories.map((category) => (
                   <div
                     key={category.id}
-                    className="flex items-center justify-between rounded-xl bg-slate-50 px-4 py-3"
+                    className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-100 bg-slate-50 px-3 py-3 sm:px-4"
                   >
                     <div>
                       <p className="text-sm font-medium text-slate-800">
@@ -780,7 +780,7 @@ export default function ProductsPage() {
                       )}
                     </div>
 
-                    <div className="flex gap-3">
+                    <div className="flex flex-wrap items-center gap-3">
                       <button
                         type="button"
                         onClick={() =>
@@ -810,7 +810,7 @@ export default function ProductsPage() {
           </section>
 
           {/* PRODUCT FORM */}
-          <section className="rounded-2xl bg-white p-6 shadow-sm">
+          <section className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm sm:p-6">
             <h3 className="text-lg font-semibold text-slate-900">
               {editingProduct
                 ? "Edit Produk"
@@ -833,7 +833,7 @@ export default function ProductsPage() {
                 onChange={(event) =>
                   setProductName(event.target.value)
                 }
-                className="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-slate-900"
+                className="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none transition focus:border-slate-900 focus:ring-2 focus:ring-slate-200"
               />
 
               {/* CATEGORY */}
@@ -842,7 +842,7 @@ export default function ProductsPage() {
                 onChange={(event) =>
                   setCategoryId(event.target.value)
                 }
-                className="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-slate-900"
+                className="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none transition focus:border-slate-900 focus:ring-2 focus:ring-slate-200"
               >
                 <option value="">
                   Pilih kategori
@@ -876,7 +876,7 @@ export default function ProductsPage() {
                   onChange={(event) =>
                     setPrice(event.target.value)
                   }
-                  className="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-slate-900"
+                  className="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none transition focus:border-slate-900 focus:ring-2 focus:ring-slate-200"
                 />
 
                 {!editingProduct && (
@@ -888,7 +888,7 @@ export default function ProductsPage() {
                     onChange={(event) =>
                       setStock(event.target.value)
                     }
-                    className="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-slate-900"
+                    className="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none transition focus:border-slate-900 focus:ring-2 focus:ring-slate-200"
                   />
                 )}
               </div>
@@ -903,7 +903,7 @@ export default function ProductsPage() {
                   onChange={(event) =>
                     setMinStock(event.target.value)
                   }
-                  className="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-slate-900"
+                  className="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none transition focus:border-slate-900 focus:ring-2 focus:ring-slate-200"
                 />
 
                 <input
@@ -913,7 +913,7 @@ export default function ProductsPage() {
                   onChange={(event) =>
                     setUnit(event.target.value)
                   }
-                  className="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-slate-900"
+                  className="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none transition focus:border-slate-900 focus:ring-2 focus:ring-slate-200"
                 />
               </div>
 
@@ -921,7 +921,7 @@ export default function ProductsPage() {
               <button
                 type="submit"
                 disabled={savingProduct}
-                className="w-full cursor-pointer rounded-xl bg-slate-900 px-4 py-3 font-semibold text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
+                className="w-full cursor-pointer rounded-xl bg-slate-900 px-4 py-3 font-semibold text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60 active:scale-[0.98] transition duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2"
               >
                 {savingProduct
                   ? "Menyimpan..."
@@ -935,7 +935,7 @@ export default function ProductsPage() {
                 <button
                   type="button"
                   onClick={cancelEdit}
-                  className="w-full cursor-pointer rounded-xl border border-slate-300 px-4 py-3 font-semibold text-slate-700 hover:bg-slate-50"
+                  className="w-full cursor-pointer rounded-xl border border-slate-300 px-4 py-3 font-semibold text-slate-700 hover:bg-slate-50 active:scale-[0.98] transition duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2"
                 >
                   Batal Edit
                 </button>
@@ -945,7 +945,7 @@ export default function ProductsPage() {
         </div>
 
         {/* PRODUCT LIST */}
-        <section className="mt-6 rounded-2xl bg-white p-6 shadow-sm">
+        <section className="mt-6 rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm sm:p-6">
           <div className="flex items-center justify-between">
             <div>
               <h3 className="text-lg font-semibold text-slate-900">
@@ -958,10 +958,13 @@ export default function ProductsPage() {
             </div>
           </div>
 
-          <div className="mt-5 overflow-x-auto">
+          <p className="mt-2 text-xs text-slate-500 sm:hidden">
+            Geser tabel ke samping untuk melihat kategori, stok, status, dan aksi.
+          </p>
+          <div className="mt-4 overflow-x-auto rounded-xl border border-slate-100">
             <table className="w-full min-w-[750px] text-left text-sm">
               <thead>
-                <tr className="border-b text-slate-500">
+                <tr className="border-b bg-slate-50/80 text-xs uppercase tracking-wide text-slate-500">
                   <th className="px-3 py-3">
                     Produk
                   </th>
@@ -1002,7 +1005,7 @@ export default function ProductsPage() {
                   products.map((product) => (
                     <tr
                       key={product.id}
-                      className="border-b last:border-0"
+                      className="border-b transition-colors hover:bg-slate-50/80 last:border-0"
                     >
                       <td className="px-3 py-4 font-medium text-slate-900">
                         {product.name}
@@ -1038,7 +1041,7 @@ export default function ProductsPage() {
                       </td>
 
                       <td className="px-3 py-4">
-                        <div className="flex gap-3">
+                        <div className="flex flex-wrap items-center gap-3">
                           <button
                             type="button"
                             onClick={() =>
