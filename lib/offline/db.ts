@@ -1,3 +1,4 @@
+
 import Dexie, { Table } from "dexie";
 import { createClient } from "@/lib/supabase/client";
 
@@ -41,8 +42,16 @@ export interface OfflineProduct {
   cached_at: string;
 }
 
+export interface OfflineCategory {
+  id: number;
+  name: string;
+  is_active: boolean;
+  cached_at: string;
+}
+
 class OfflineDatabase extends Dexie {
   products!: Table<OfflineProduct, number>;
+  categories!: Table<OfflineCategory, number>;
   transactions!: Table<OfflineTransaction, number>;
   transactionItems!: Table<OfflineTransactionItem, number>;
 
@@ -50,8 +59,16 @@ class OfflineDatabase extends Dexie {
     super("KantinKuOfflineDB");
 
     this.version(2).stores({
-      products:
-        "id, name, category_id, is_active, cached_at",
+      products: "id, name, category_id, is_active, cached_at",
+      transactions:
+        "++id, local_id, transaction_code, status, created_at",
+      transactionItems:
+        "++id, transaction_local_id, product_id",
+    });
+
+    this.version(3).stores({
+      products: "id, name, category_id, is_active, cached_at",
+      categories: "id, name, is_active, cached_at",
       transactions:
         "++id, local_id, transaction_code, status, created_at",
       transactionItems:
@@ -87,6 +104,30 @@ export async function getCachedProducts() {
 }
 
 /* =========================================================
+   CACHE KATEGORI
+   ========================================================= */
+
+export async function cacheCategories(
+  categories: Omit<OfflineCategory, "cached_at">[]
+) {
+  const categoriesWithCacheTime = categories.map((category) => ({
+    ...category,
+    cached_at: new Date().toISOString(),
+  }));
+
+  await offlineDb.categories.clear();
+  await offlineDb.categories.bulkPut(categoriesWithCacheTime);
+}
+
+export async function getCachedCategories() {
+  const categories = await offlineDb.categories.toArray();
+
+  return categories
+    .filter((category) => category.is_active)
+    .sort((a, b) => a.name.localeCompare(b.name));
+}
+
+/* =========================================================
    HITUNG TRANSAKSI YANG BELUM TERSINKRON
    ========================================================= */
 
@@ -115,7 +156,6 @@ export async function saveOfflineTransaction(
     offlineDb.transactionItems,
     offlineDb.products,
     async () => {
-      // Validasi stok seluruh item sebelum menyimpan transaksi.
       for (const item of items) {
         const product = await offlineDb.products.get(
           item.product_id
@@ -140,13 +180,9 @@ export async function saveOfflineTransaction(
         }
       }
 
-      // Simpan transaksi utama.
       await offlineDb.transactions.add(transaction);
-
-      // Simpan seluruh detail transaksi.
       await offlineDb.transactionItems.bulkAdd(items);
 
-      // Kurangi stok lokal setelah semua item tervalidasi.
       for (const item of items) {
         const product = await offlineDb.products.get(
           item.product_id
@@ -171,8 +207,6 @@ export async function saveOfflineTransaction(
    SINKRONISASI TRANSAKSI OFFLINE
    ========================================================= */
 
-// Mencegah dua proses sync berjalan bersamaan
-// dalam instance aplikasi yang sama.
 let syncInProgress = false;
 
 export async function syncOfflineTransactions() {
@@ -312,5 +346,3 @@ export async function syncOfflineTransactions() {
     syncInProgress = false;
   }
 }
-
-

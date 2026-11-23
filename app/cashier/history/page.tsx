@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useEffect, useState } from "react";
@@ -41,7 +42,17 @@ export default function CashierHistoryPage() {
 
   const [loadingDetail, setLoadingDetail] = useState(false);
 
-  async function loadTransactions() {
+  // Filter tanggal
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+
+  const [appliedStartDate, setAppliedStartDate] = useState("");
+  const [appliedEndDate, setAppliedEndDate] = useState("");
+
+  async function loadTransactions(
+    filterStartDate = appliedStartDate,
+    filterEndDate = appliedEndDate
+  ) {
     setLoading(true);
     setError("");
 
@@ -65,7 +76,7 @@ export default function CashierHistoryPage() {
       return;
     }
 
-    const { data, error } = await supabase
+    let query = supabase
       .from("transactions")
       .select(
         `
@@ -79,8 +90,40 @@ export default function CashierHistoryPage() {
         created_at
         `
       )
-      .eq("cashier_id", user.id)
-      .order("created_at", { ascending: false });
+      .eq("cashier_id", user.id);
+
+    // Filter tanggal mulai
+    if (filterStartDate) {
+      query = query.gte(
+        "created_at",
+        `${filterStartDate}T00:00:00`
+      );
+    }
+
+    // Filter tanggal akhir
+    if (filterEndDate) {
+      const nextDay = new Date(
+        `${filterEndDate}T00:00:00`
+      );
+
+      nextDay.setDate(nextDay.getDate() + 1);
+
+      const exclusiveEndDate = [
+        nextDay.getFullYear(),
+        String(nextDay.getMonth() + 1).padStart(2, "0"),
+        String(nextDay.getDate()).padStart(2, "0"),
+      ].join("-");
+
+      query = query.lt(
+        "created_at",
+        `${exclusiveEndDate}T00:00:00`
+      );
+    }
+
+    const { data, error } = await query.order(
+      "created_at",
+      { ascending: false }
+    );
 
     if (error) {
       setError(
@@ -96,7 +139,35 @@ export default function CashierHistoryPage() {
 
   useEffect(() => {
     loadTransactions();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  function applyDateFilter() {
+    if (
+      startDate &&
+      endDate &&
+      startDate > endDate
+    ) {
+      setError(
+        "Tanggal mulai tidak boleh melebihi tanggal akhir."
+      );
+      return;
+    }
+
+    setAppliedStartDate(startDate);
+    setAppliedEndDate(endDate);
+
+    loadTransactions(startDate, endDate);
+  }
+
+  function resetDateFilter() {
+    setStartDate("");
+    setEndDate("");
+    setAppliedStartDate("");
+    setAppliedEndDate("");
+
+    loadTransactions("", "");
+  }
 
   async function loadTransactionDetail(
     transaction: Transaction
@@ -372,91 +443,174 @@ export default function CashierHistoryPage() {
         ) : transactions.length === 0 ? (
           <div className="rounded-2xl bg-white p-8 text-center shadow-sm">
             <p className="font-medium text-slate-700">
-              Belum ada transaksi.
+              {appliedStartDate || appliedEndDate
+                ? "Tidak ada transaksi pada rentang tanggal tersebut."
+                : "Belum ada transaksi."}
             </p>
 
             <p className="mt-1 text-sm text-slate-500">
-              Transaksi yang berhasil dilakukan akan muncul
-              di sini.
+              {appliedStartDate || appliedEndDate
+                ? "Coba ubah rentang tanggal atau reset filter."
+                : "Transaksi yang berhasil dilakukan akan muncul di sini."}
             </p>
 
-            <button
-              type="button"
-              onClick={() => router.push("/cashier/pos")}
-              className="mt-5 cursor-pointer rounded-xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white hover:bg-slate-800"
-            >
-              Buat Transaksi
-            </button>
+            {appliedStartDate || appliedEndDate ? (
+              <button
+                type="button"
+                onClick={resetDateFilter}
+                className="mt-5 cursor-pointer rounded-xl border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+              >
+                Reset Filter
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => router.push("/cashier/pos")}
+                className="mt-5 cursor-pointer rounded-xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white hover:bg-slate-800"
+              >
+                Buat Transaksi
+              </button>
+            )}
           </div>
         ) : (
-          <div className="overflow-hidden rounded-2xl bg-white shadow-sm">
-            <div className="border-b border-slate-200 px-5 py-4">
-              <p className="font-semibold text-slate-900">
-                {transactions.length} Transaksi
+          <div className="space-y-4">
+            {/* Filter Tanggal */}
+            <div className="rounded-2xl bg-white p-5 shadow-sm">
+              <h3 className="font-semibold text-slate-900">
+                Filter Tanggal Transaksi
+              </h3>
+
+              <p className="mt-1 text-sm text-slate-500">
+                Pilih rentang tanggal untuk melihat riwayat transaksi.
               </p>
+
+              <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div>
+                  <label
+                    htmlFor="startDate"
+                    className="mb-2 block text-sm font-medium text-slate-700"
+                  >
+                    Dari Tanggal
+                  </label>
+
+                  <input
+                    id="startDate"
+                    type="date"
+                    value={startDate}
+                    max={endDate || undefined}
+                    onChange={(e) => setStartDate(e.target.value)}
+                    className="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm text-slate-700 outline-none focus:border-slate-900 focus:ring-1 focus:ring-slate-900"
+                  />
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="endDate"
+                    className="mb-2 block text-sm font-medium text-slate-700"
+                  >
+                    Sampai Tanggal
+                  </label>
+
+                  <input
+                    id="endDate"
+                    type="date"
+                    value={endDate}
+                    min={startDate || undefined}
+                    onChange={(e) => setEndDate(e.target.value)}
+                    className="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm text-slate-700 outline-none focus:border-slate-900 focus:ring-1 focus:ring-slate-900"
+                  />
+                </div>
+              </div>
+
+              <div className="mt-4 flex flex-wrap gap-3">
+                <button
+                  type="button"
+                  onClick={applyDateFilter}
+                  className="cursor-pointer rounded-xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white hover:bg-slate-800"
+                >
+                  Terapkan Filter
+                </button>
+
+                <button
+                  type="button"
+                  onClick={resetDateFilter}
+                  className="cursor-pointer rounded-xl border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+                >
+                  Reset
+                </button>
+              </div>
             </div>
 
-            <div className="divide-y divide-slate-100">
-              {transactions.map((transaction) => (
-                <button
-                  key={transaction.id}
-                  type="button"
-                  onClick={() =>
-                    loadTransactionDetail(transaction)
-                  }
-                  className="block w-full cursor-pointer px-5 py-4 text-left transition hover:bg-slate-50"
-                >
-                  <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                    <div>
-                      <p className="font-semibold text-slate-900">
-                        {transaction.transaction_code}
-                      </p>
+            {/* Daftar Transaksi */}
+            <div className="overflow-hidden rounded-2xl bg-white shadow-sm">
+              <div className="border-b border-slate-200 px-5 py-4">
+                <p className="font-semibold text-slate-900">
+                  {transactions.length} Transaksi
+                </p>
+              </div>
 
-                      <p className="mt-1 text-sm text-slate-500">
-                        {formatDateTime(
-                          transaction.created_at
-                        )}
-                      </p>
-                    </div>
+              <div className="divide-y divide-slate-100">
+                {transactions.map((transaction) => (
+                  <button
+                    key={transaction.id}
+                    type="button"
+                    onClick={() =>
+                      loadTransactionDetail(transaction)
+                    }
+                    className="block w-full cursor-pointer px-5 py-4 text-left transition hover:bg-slate-50"
+                  >
+                    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                      <div>
+                        <p className="font-semibold text-slate-900">
+                          {transaction.transaction_code}
+                        </p>
 
-                    <div className="flex flex-wrap items-center gap-3">
-                      <span
-                        className={`rounded-full px-3 py-1 text-xs font-medium ${
-                          transaction.payment_method ===
+                        <p className="mt-1 text-sm text-slate-500">
+                          {formatDateTime(
+                            transaction.created_at
+                          )}
+                        </p>
+                      </div>
+
+                      <div className="flex flex-wrap items-center gap-3">
+                        <span
+                          className={`rounded-full px-3 py-1 text-xs font-medium ${
+                            transaction.payment_method ===
+                            "cash"
+                              ? "bg-green-50 text-green-700"
+                              : "bg-blue-50 text-blue-700"
+                          }`}
+                        >
+                          {transaction.payment_method ===
                           "cash"
-                            ? "bg-green-50 text-green-700"
-                            : "bg-blue-50 text-blue-700"
-                        }`}
-                      >
-                        {transaction.payment_method ===
-                        "cash"
-                          ? "Tunai"
-                          : "QRIS"}
-                      </span>
+                            ? "Tunai"
+                            : "QRIS"}
+                        </span>
 
-                      <span
-                        className={`rounded-full px-3 py-1 text-xs font-medium ${
-                          transaction.status ===
+                        <span
+                          className={`rounded-full px-3 py-1 text-xs font-medium ${
+                            transaction.status ===
+                            "completed"
+                              ? "bg-green-50 text-green-700"
+                              : "bg-red-50 text-red-700"
+                          }`}
+                        >
+                          {transaction.status ===
                           "completed"
-                            ? "bg-green-50 text-green-700"
-                            : "bg-red-50 text-red-700"
-                        }`}
-                      >
-                        {transaction.status ===
-                        "completed"
-                          ? "Selesai"
-                          : "Dibatalkan"}
-                      </span>
+                            ? "Selesai"
+                            : "Dibatalkan"}
+                        </span>
 
-                      <span className="font-bold text-slate-900">
-                        {formatRupiah(
-                          transaction.total_amount
-                        )}
-                      </span>
+                        <span className="font-bold text-slate-900">
+                          {formatRupiah(
+                            transaction.total_amount
+                          )}
+                        </span>
+                      </div>
                     </div>
-                  </div>
-                </button>
-              ))}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
         )}

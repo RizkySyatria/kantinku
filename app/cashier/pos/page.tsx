@@ -11,11 +11,10 @@ import { saveOfflineTransaction } from "@/lib/offline/db";
 import {
   syncOfflineTransactions,
   getPendingTransactionCount,
-} from "@/lib/offline/db";
-
-import {
   cacheProducts,
   getCachedProducts,
+  cacheCategories,
+  getCachedCategories,
 } from "@/lib/offline/db";
 
 type Product = {
@@ -25,6 +24,12 @@ type Product = {
   price: number;
   stock: number;
   unit: string;
+  is_active: boolean;
+};
+
+type Category = {
+  id: number;
+  name: string;
   is_active: boolean;
 };
 
@@ -40,10 +45,14 @@ export default function CashierPOSPage() {
   const supabase = createClient();
 
   const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
+  const [searchProduct, setSearchProduct] = useState("");
   const [cart, setCart] = useState<CartItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
+  const [cartFeedback, setCartFeedback] = useState("");
   const [isOnline, setIsOnline] = useState(true);
   const [pendingCount, setPendingCount] = useState(0);
 
@@ -62,6 +71,7 @@ export default function CashierPOSPage() {
     paymentAmount: number;
     changeAmount: number;
     paymentMethod: PaymentMethod;
+    isOffline: boolean;
   } | null>(null);
 
   const [processingPayment, setProcessingPayment] = useState(false);
@@ -90,31 +100,48 @@ export default function CashierPOSPage() {
       return;
     }
 
-    const { data, error } = await supabase
-      .from("products")
-      .select(
-        "id, name, category_id, price, stock, unit, is_active"
-      )
-      .eq("is_active", true)
-      .order("name");
+    const [productResult, categoryResult] = await Promise.all([
+      supabase
+        .from("products")
+        .select("id, name, category_id, price, stock, unit, is_active")
+        .eq("is_active", true)
+        .order("name"),
 
-    // INTERNET TERSEDIA
-    if (!error && data) {
-      setProducts(data);
+      supabase
+        .from("categories")
+        .select("id, name, is_active")
+        .eq("is_active", true)
+        .order("name"),
+    ]);
 
-      await cacheProducts(data);
+    if (!productResult.error && productResult.data) {
+      setProducts(productResult.data);
+
+      await cacheProducts(productResult.data);
+
+      if (!categoryResult.error && categoryResult.data) {
+        setCategories(categoryResult.data);
+        await cacheCategories(categoryResult.data);
+      } else {
+        const cachedCategories = await getCachedCategories();
+        setCategories(cachedCategories);
+      }
 
       setLoading(false);
       return;
     }
 
-    // INTERNET TIDAK TERSEDIA
-    const cachedProducts = await getCachedProducts();
+    const [cachedProducts, cachedCategories] = await Promise.all([
+      getCachedProducts(),
+      getCachedCategories(),
+    ]);
 
     if (cachedProducts.length > 0) {
       setProducts(cachedProducts);
+      setCategories(cachedCategories);
+
       setMessage(
-        "Offline: menggunakan data produk yang tersimpan di perangkat."
+        "Offline: menggunakan data produk dan kategori yang tersimpan di perangkat."
       );
     } else {
       setError(
@@ -214,67 +241,71 @@ export default function CashierPOSPage() {
     setMessage("");
 
     if (product.stock <= 0) {
+      setCartFeedback("");
       setError(`${product.name} sedang habis.`);
       return;
     }
 
+    const existingItem = cart.find(
+      (item) => item.product.id === product.id
+    );
+
+    if (existingItem && existingItem.quantity >= product.stock) {
+      setCartFeedback("");
+      setError(
+        `Stok ${product.name} hanya ${product.stock} ${product.unit}.`
+      );
+      return;
+    }
+
     setCart((currentCart) => {
-      const existingItem = currentCart.find(
+      const currentItem = currentCart.find(
         (item) => item.product.id === product.id
       );
 
-      if (!existingItem) {
-        return [
-          ...currentCart,
-          {
-            product,
-            quantity: 1,
-          },
-        ];
-      }
-
-      if (existingItem.quantity >= product.stock) {
-        setError(
-          `Stok ${product.name} hanya ${product.stock} ${product.unit}.`
-        );
-
-        return currentCart;
+      if (!currentItem) {
+        return [...currentCart, { product, quantity: 1 }];
       }
 
       return currentCart.map((item) =>
         item.product.id === product.id
-          ? {
-              ...item,
-              quantity: item.quantity + 1,
-            }
+          ? { ...item, quantity: item.quantity + 1 }
           : item
       );
     });
+
+    const nextQuantity = (existingItem?.quantity ?? 0) + 1;
+    setCartFeedback(
+      `${product.name} ditambahkan · ${nextQuantity} di keranjang`
+    );
   }
 
   function increaseQuantity(productId: number) {
     setError("");
     setMessage("");
 
+    const selectedItem = cart.find(
+      (item) => item.product.id === productId
+    );
+
+    if (!selectedItem) return;
+
+    if (selectedItem.quantity >= selectedItem.product.stock) {
+      setError(
+        `Stok ${selectedItem.product.name} hanya ${selectedItem.product.stock} ${selectedItem.product.unit}.`
+      );
+      return;
+    }
+
     setCart((currentCart) =>
-      currentCart.map((item) => {
-        if (item.product.id !== productId) {
-          return item;
-        }
-
-        if (item.quantity >= item.product.stock) {
-          setError(
-            `Stok ${item.product.name} hanya ${item.product.stock} ${item.product.unit}.`
-          );
-
-          return item;
-        }
-
-        return {
-          ...item,
-          quantity: item.quantity + 1,
-        };
-      })
+      currentCart.map((item) =>
+        item.product.id === productId
+          ? { ...item, quantity: item.quantity + 1 }
+          : item
+      )
+    );
+    setCartFeedback(
+      `Jumlah ${selectedItem.product.name} menjadi ${selectedItem.quantity + 1}`
     );
   }
 
@@ -282,17 +313,26 @@ export default function CashierPOSPage() {
     setError("");
     setMessage("");
 
+    const selectedItem = cart.find(
+      (item) => item.product.id === productId
+    );
+
+    if (!selectedItem) return;
+
     setCart((currentCart) =>
       currentCart
         .map((item) =>
           item.product.id === productId
-            ? {
-                ...item,
-                quantity: item.quantity - 1,
-              }
+            ? { ...item, quantity: item.quantity - 1 }
             : item
         )
         .filter((item) => item.quantity > 0)
+    );
+
+    setCartFeedback(
+      selectedItem.quantity === 1
+        ? `${selectedItem.product.name} dihapus dari keranjang`
+        : `Jumlah ${selectedItem.product.name} menjadi ${selectedItem.quantity - 1}`
     );
   }
 
@@ -300,11 +340,17 @@ export default function CashierPOSPage() {
     setError("");
     setMessage("");
 
-    setCart((currentCart) =>
-      currentCart.filter(
-        (item) => item.product.id !== productId
-      )
+    const selectedItem = cart.find(
+      (item) => item.product.id === productId
     );
+
+    setCart((currentCart) =>
+      currentCart.filter((item) => item.product.id !== productId)
+    );
+
+    if (selectedItem) {
+      setCartFeedback(`${selectedItem.product.name} dihapus dari keranjang`);
+    }
   }
 
   const totalItems = useMemo(() => {
@@ -342,6 +388,20 @@ export default function CashierPOSPage() {
       ? totalAmount > 0
       : isCashPaymentEnough;
 
+  const filteredProducts = useMemo(() => {
+    return products.filter((product) => {
+      const matchesCategory =
+        selectedCategory === null ||
+        product.category_id === selectedCategory;
+
+      const matchesSearch = product.name
+        .toLowerCase()
+        .includes(searchProduct.trim().toLowerCase());
+
+      return matchesCategory && matchesSearch;
+    });
+  }, [products, selectedCategory, searchProduct]);
+      
   function formatRupiah(value: number) {
     return new Intl.NumberFormat("id-ID", {
       style: "currency",
@@ -488,6 +548,7 @@ export default function CashierPOSPage() {
           paymentAmount: finalPaymentAmount,
           changeAmount: finalChangeAmount,
           paymentMethod,
+          isOffline: true,
         });
 
         setCart([]);
@@ -552,6 +613,7 @@ export default function CashierPOSPage() {
         paymentAmount: finalPaymentAmount,
         changeAmount: finalChangeAmount,
         paymentMethod,
+        isOffline: false,
       });
 
       setCart([]);
@@ -663,21 +725,38 @@ export default function CashierPOSPage() {
 
         <div className="mx-auto max-w-xl px-4 py-8">
           <div className="rounded-2xl bg-white p-6 shadow-sm sm:p-8">
-            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
-              <span className="text-3xl text-green-600">
-                ✓
+            <div className={`mx-auto flex h-16 w-16 items-center justify-center rounded-full ${
+              transactionSuccess.isOffline ? "bg-amber-100" : "bg-green-100"
+            }`}>
+              <span className={`text-3xl ${
+                transactionSuccess.isOffline ? "text-amber-600" : "text-green-600"
+              }`}>
+                {transactionSuccess.isOffline ? "↻" : "✓"}
               </span>
             </div>
 
             <div className="mt-5 text-center">
               <h2 className="text-2xl font-bold text-slate-900">
-                Transaksi Berhasil
+                {transactionSuccess.isOffline
+                  ? "Transaksi Tersimpan Offline"
+                  : "Transaksi Berhasil"}
               </h2>
 
               <p className="mt-2 text-sm text-slate-500">
-                Transaksi telah berhasil disimpan.
+                {transactionSuccess.isOffline
+                  ? "Transaksi tersimpan di perangkat dan menunggu koneksi internet untuk disinkronkan."
+                  : "Transaksi telah berhasil disimpan ke sistem."}
               </p>
             </div>
+
+            {transactionSuccess.isOffline && (
+              <div className="mb-4 rounded-xl border border-amber-200 bg-amber-50 p-4 text-left text-sm text-amber-800">
+                <p className="font-semibold">Menunggu sinkronisasi</p>
+                <p className="mt-1">
+                  Jangan ulangi transaksi ini. Data akan dikirim ke server saat internet kembali tersedia.
+                </p>
+              </div>
+            )}
 
             <div className="mt-6 rounded-xl bg-slate-50 p-5 text-center">
               <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
@@ -887,6 +966,48 @@ export default function CashierPOSPage() {
                   </span>
                 </div>
 
+                {/* PENCARIAN PRODUK */}
+                <div className="mb-4">
+                  <input
+                    type="search"
+                    value={searchProduct}
+                    onChange={(event) => setSearchProduct(event.target.value)}
+                    placeholder="Cari nama produk..."
+                    aria-label="Cari produk"
+                    className="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none transition focus:border-slate-900 focus:ring-2 focus:ring-slate-200"
+                  />
+                </div>
+
+                {/* FILTER KATEGORI */}
+                <div className="mb-5 flex gap-2 overflow-x-auto pb-2">
+                  <button
+                    type="button"
+                    onClick={() => setSelectedCategory(null)}
+                    className={`shrink-0 rounded-full px-4 py-2 text-sm font-medium transition ${
+                      selectedCategory === null
+                        ? "bg-slate-900 text-white"
+                        : "border border-slate-300 bg-white text-slate-600 hover:bg-slate-50"
+                    }`}
+                  >
+                    Semua
+                  </button>
+
+                  {categories.map((category) => (
+                    <button
+                      key={category.id}
+                      type="button"
+                      onClick={() => setSelectedCategory(category.id)}
+                      className={`shrink-0 rounded-full px-4 py-2 text-sm font-medium transition ${
+                        selectedCategory === category.id
+                          ? "bg-slate-900 text-white"
+                          : "border border-slate-300 bg-white text-slate-600 hover:bg-slate-50"
+                      }`}
+                    >
+                      {category.name}
+                    </button>
+                  ))}
+                </div>
+                
                 {products.length === 0 ? (
                   <div className="rounded-xl border border-dashed border-slate-300 p-8 text-center">
                     <p className="font-medium text-slate-700">
@@ -898,43 +1019,59 @@ export default function CashierPOSPage() {
                       & Menu.
                     </p>
                   </div>
+                ) : filteredProducts.length === 0 ? (
+                  <div className="rounded-xl border border-dashed border-slate-300 p-8 text-center">
+                    <p className="font-medium text-slate-700">
+                      Produk tidak ditemukan.
+                    </p>
+
+                    <p className="mt-1 text-sm text-slate-500">
+                      Coba gunakan kata kunci lain atau pilih kategori berbeda.
+                    </p>
+                  </div>
                 ) : (
                   <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-                    {products.map((product) => {
-                      const isOutOfStock =
-                        product.stock <= 0;
+                    {filteredProducts.map((product) => {
+                      const isOutOfStock = product.stock <= 0;
+                      const cartItem = cart.find(
+                        (item) => item.product.id === product.id
+                      );
 
                       return (
                         <button
                           key={product.id}
                           type="button"
-                          onClick={() =>
-                            addToCart(product)
-                          }
+                          onClick={() => addToCart(product)}
                           disabled={isOutOfStock}
-                          className={`rounded-2xl border p-4 text-left transition ${
+                          aria-label={`Tambahkan ${product.name} ke keranjang`}
+                          className={`group relative min-h-36 rounded-2xl border p-4 text-left transition duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 focus-visible:ring-offset-2 active:scale-[0.98] ${
                             isOutOfStock
                               ? "cursor-not-allowed border-slate-200 bg-slate-100 opacity-60"
-                              : "cursor-pointer border-slate-200 bg-white hover:border-slate-400 hover:shadow-md"
+                              : cartItem
+                                ? "cursor-pointer border-slate-900 bg-slate-50 shadow-sm"
+                                : "cursor-pointer border-slate-200 bg-white hover:-translate-y-0.5 hover:border-slate-400 hover:shadow-md"
                           }`}
                         >
                           <div className="flex min-h-28 flex-col justify-between">
                             <div>
+                              {cartItem && (
+                                <span className="mb-2 inline-flex items-center rounded-full bg-slate-900 px-2.5 py-1 text-xs font-semibold text-white">
+                                  {cartItem.quantity} di keranjang
+                                </span>
+                              )}
+
                               <h4 className="font-semibold text-slate-900">
                                 {product.name}
                               </h4>
 
                               <p className="mt-1 text-lg font-bold text-slate-900">
-                                {formatRupiah(
-                                  product.price
-                                )}
+                                {formatRupiah(product.price)}
                               </p>
                             </div>
 
                             <div className="mt-4 flex items-center justify-between text-xs">
                               <span className="text-slate-500">
-                                Stok: {product.stock}{" "}
-                                {product.unit}
+                                Stok: {product.stock} {product.unit}
                               </span>
 
                               {isOutOfStock && (
@@ -962,9 +1099,13 @@ export default function CashierPOSPage() {
                     </h3>
 
                     <p className="text-sm text-slate-500">
-                      {totalItems} item
+                      {totalItems} item · {cart.length} jenis produk
                     </p>
                   </div>
+
+                  <span className="flex h-10 min-w-10 items-center justify-center rounded-full bg-slate-900 px-3 text-sm font-bold text-white" aria-live="polite">
+                    {totalItems}
+                  </span>
 
                   {cart.length > 0 && (
                     <button
@@ -973,6 +1114,7 @@ export default function CashierPOSPage() {
                         setCart([]);
                         setError("");
                         setMessage("");
+                        setCartFeedback("Keranjang berhasil dikosongkan");
                       }}
                       className="cursor-pointer text-sm font-medium text-red-500 hover:text-red-600"
                     >
@@ -980,6 +1122,17 @@ export default function CashierPOSPage() {
                     </button>
                   )}
                 </div>
+
+                {cartFeedback && (
+                  <div
+                    className="mb-4 flex items-center gap-2 rounded-xl border border-green-200 bg-green-50 px-3 py-2.5 text-sm font-medium text-green-800"
+                    role="status"
+                    aria-live="polite"
+                  >
+                    <span aria-hidden="true">✓</span>
+                    <span>{cartFeedback}</span>
+                  </div>
+                )}
 
                 {cart.length === 0 ? (
                   <div className="rounded-xl border border-dashed border-slate-300 p-6 text-center">
@@ -1033,7 +1186,8 @@ export default function CashierPOSPage() {
                                   item.product.id
                                 )
                               }
-                              className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-100"
+                              aria-label={`Kurangi jumlah ${item.product.name}`}
+                              className="flex h-10 w-10 cursor-pointer touch-manipulation items-center justify-center rounded-lg border border-slate-300 text-lg font-semibold text-slate-700 transition active:scale-95 active:bg-slate-200 hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900"
                             >
                               −
                             </button>
@@ -1049,7 +1203,8 @@ export default function CashierPOSPage() {
                                   item.product.id
                                 )
                               }
-                              className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-100"
+                              aria-label={`Tambah jumlah ${item.product.name}`}
+                              className="flex h-10 w-10 cursor-pointer touch-manipulation items-center justify-center rounded-lg border border-slate-300 text-lg font-semibold text-slate-700 transition active:scale-95 active:bg-slate-200 hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900"
                             >
                               +
                             </button>
@@ -1080,7 +1235,7 @@ export default function CashierPOSPage() {
                         type="button"
                         onClick={openPayment}
                         disabled={cart.length === 0}
-                        className="mt-5 w-full cursor-pointer rounded-xl bg-slate-900 px-4 py-4 font-semibold text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50"
+                        className="mt-5 w-full cursor-pointer touch-manipulation rounded-xl bg-slate-900 px-4 py-4 font-semibold text-white transition active:scale-[0.99] hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                       >
                         Lanjut Pembayaran
                       </button>
@@ -1346,13 +1501,18 @@ export default function CashierPOSPage() {
                   type="button"
                   onClick={handleConfirmPayment}
                   disabled={!isPaymentReady || processingPayment}
-                  className="cursor-pointer rounded-xl bg-slate-900 px-4 py-4 font-semibold text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="cursor-pointer touch-manipulation rounded-xl bg-slate-900 px-4 py-4 font-semibold text-white transition active:scale-[0.99] hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  {processingPayment
-                    ? "Menyimpan..."
-                    : paymentMethod === "qris"
-                      ? "Konfirmasi QRIS"
-                      : "Bayar"}
+                  {processingPayment ? (
+                    <span className="inline-flex items-center justify-center gap-2">
+                      <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
+                      Menyimpan transaksi...
+                    </span>
+                  ) : paymentMethod === "qris" ? (
+                    "Konfirmasi QRIS"
+                  ) : (
+                    "Bayar"
+                  )}
                 </button>
               </div>
             </div>
