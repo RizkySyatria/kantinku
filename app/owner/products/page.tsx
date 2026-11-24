@@ -648,7 +648,7 @@ export default function ProductsPage() {
   // ============================================
 
   return (
-    <main className="min-h-screen bg-slate-100">
+    <main className="min-h-screen w-full overflow-x-hidden bg-slate-100 text-slate-900">
       {/* HEADER */}
       <header className="border-b bg-white">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4">
@@ -671,7 +671,7 @@ export default function ProductsPage() {
         </div>
       </header>
 
-      <div className="mx-auto max-w-7xl px-4 py-5 sm:px-6 sm:py-8 lg:px-8">
+      <div className="mx-auto w-full max-w-7xl px-4 py-5 sm:px-6 sm:py-8 lg:px-8">
         {/* PAGE TITLE */}
         <div className="mb-6 sm:mb-8">
           <h2 className="text-2xl font-bold text-slate-900">
@@ -704,7 +704,7 @@ export default function ProductsPage() {
         {/* CATEGORY + PRODUCT FORM */}
         <div className="grid gap-6 lg:grid-cols-2">
           {/* CATEGORY */}
-          <section className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm sm:p-6">
+          <section className="min-w-0 rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm sm:p-6">
             <h3 className="text-lg font-semibold text-slate-900">
               {editingCategory
                 ? "Edit Kategori"
@@ -717,7 +717,7 @@ export default function ProductsPage() {
                   ? handleUpdateCategory
                   : handleAddCategory
               }
-              className="mt-4 flex gap-3"
+              className="mt-4 flex gap-2 sm:gap-3"
             >
               <input
                 type="text"
@@ -726,13 +726,13 @@ export default function ProductsPage() {
                 onChange={(event) =>
                   setCategoryName(event.target.value)
                 }
-                className="flex-1 rounded-xl border border-slate-300 px-4 py-3 outline-none transition focus:border-slate-900 focus:ring-2 focus:ring-slate-200"
+                className="min-w-0 flex-1 rounded-xl border border-slate-300 px-3 py-3 text-slate-900 placeholder:text-slate-400 outline-none transition focus:border-slate-900 focus:ring-2 focus:ring-slate-200 sm:px-4"
               />
 
               <button
                 type="submit"
                 disabled={savingCategory}
-                className="cursor-pointer rounded-xl bg-slate-900 px-5 py-3 font-semibold text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60 active:scale-[0.98] transition duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2"
+                className="shrink-0 cursor-pointer rounded-xl bg-slate-900 px-4 py-3 font-semibold text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60 active:scale-[0.98] transition duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2 sm:px-5"
               >
                 {savingCategory
                   ? "Menyimpan..."
@@ -810,7 +810,7 @@ export default function ProductsPage() {
           </section>
 
           {/* PRODUCT FORM */}
-          <section className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm sm:p-6">
+          <section className="min-w-0 rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm sm:p-6">
             <h3 className="text-lg font-semibold text-slate-900">
               {editingProduct
                 ? "Edit Produk"
@@ -833,7 +833,7 @@ export default function ProductsPage() {
                 onChange={(event) =>
                   setProductName(event.target.value)
                 }
-                className="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none transition focus:border-slate-900 focus:ring-2 focus:ring-slate-200"
+                className="w-full min-w-0 rounded-xl border border-slate-300 px-4 py-3 text-slate-900 placeholder:text-slate-400 outline-none transition focus:border-slate-900 focus:ring-2 focus:ring-slate-200"
               />
 
               {/* CATEGORY */}
@@ -842,7 +842,7 @@ export default function ProductsPage() {
                 onChange={(event) =>
                   setCategoryId(event.target.value)
                 }
-                className="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none transition focus:border-slate-900 focus:ring-2 focus:ring-slate-200"
+                className="w-full min-w-0 rounded-xl border border-slate-300 px-4 py-3 text-slate-900 outline-none transition focus:border-slate-900 focus:ring-2 focus:ring-slate-200"
               >
                 <option value="">
                   Pilih kategori
@@ -876,7 +876,7 @@ export default function ProductsPage() {
                   onChange={(event) =>
                     setPrice(event.target.value)
                   }
-                  className="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none transition focus:border-slate-900 focus:ring-2 focus:ring-slate-200"
+                  className="w-full min-w-0 rounded-xl border border-slate-300 px-4 py-3 text-slate-900 placeholder:text-slate-400 outline-none transition focus:border-slate-900 focus:ring-2 focus:ring-slate-200"
                 />
 
                 {!editingProduct && (
@@ -888,7 +888,7 @@ export default function ProductsPage() {
                     onChange={(event) =>
                       setStock(event.target.value)
                     }
-                    className="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none transition focus:border-slate-900 focus:ring-2 focus:ring-slate-200"
+                    className="w-full min-w-0 rounded-xl border border-slate-300 px-4 py-3 text-slate-900 placeholder:text-slate-400 outline-none transition focus:border-slate-900 focus:ring-2 focus:ring-slate-200"
                   />
                 )}
               </div>
@@ -903,7 +903,7 @@ export default function ProductsPage() {
                   onChange={(event) =>
                     setMinStock(event.target.value)
                   }
-                  className="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none transition focus:border-slate-900 focus:ring-2 focus:ring-slate-200"
+                  className="w-full min-w-0 rounded-xl border border-slate-300 px-4 py-3 text-slate-900 placeholder:text-slate-400 outline-none transition focus:border-slate-900 focus:ring-2 focus:ring-slate-200"
                 />
 
                 <input
@@ -913,7 +913,7 @@ export default function ProductsPage() {
                   onChange={(event) =>
                     setUnit(event.target.value)
                   }
-                  className="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none transition focus:border-slate-900 focus:ring-2 focus:ring-slate-200"
+                  className="w-full min-w-0 rounded-xl border border-slate-300 px-4 py-3 text-slate-900 placeholder:text-slate-400 outline-none transition focus:border-slate-900 focus:ring-2 focus:ring-slate-200"
                 />
               </div>
 
@@ -945,7 +945,7 @@ export default function ProductsPage() {
         </div>
 
         {/* PRODUCT LIST */}
-        <section className="mt-6 rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm sm:p-6">
+        <section className="mt-6 min-w-0 rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm sm:p-6">
           <div className="flex items-center justify-between">
             <div>
               <h3 className="text-lg font-semibold text-slate-900">
